@@ -10,7 +10,7 @@ $password = 'LZcu8dtC';
 try {
     $api = new ApiConnector($apiBaseUrl, $login, $password);
     echo "✅ Connexion réussie !\n";
-} catch (\Exception $e) {
+} catch (Exception $e) {
     echo "❌ Erreur lors de la connexion : " . $e->getMessage() . "\n";
 }
 
