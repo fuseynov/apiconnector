@@ -11,22 +11,69 @@ class ApiConnector
         $this->baseUrl  = $baseUrl;
         $this->login    = $login;
         $this->password = $password;
-        $this->authenticate();
+        $this->authenticate( $this->generateToken());
     }
 
-    private function authenticate(): void
-    {   
+    /**
+     * Généreration du token pour l'authentification API
+     * @throws \Exception
+     * @return string $token
+     */
+    private function generateToken(): ?string 
+    {
+        $urlToken = 'https://rest.unidata.msf.org/ebx-dataservices/rest/auth/v1/token:create';
+        
         $data = [
             'login' => $this->login,
             'password' => $this->password
         ];
 
+        $options = [
+            CURLOPT_URL => $urlToken,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json'
+            ],
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($data)
+        ];
+
+        $ch = curl_init();
+        curl_setopt_array($ch, $options);
+
+        $response = curl_exec($ch);
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpcode !== 200) {
+            throw new Exception("Erreur API lors de la génération du token. Code HTTP : " . $httpcode . ' - Réponse : ' . $response);
+        } else {
+            $responseData = json_decode($response, true);
+            $accessToken = $responseData['accessToken'] ?? null;
+            if (isset($accessToken)) {
+                return $accessToken;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Authentification à l'api
+     * @param string $token
+     * @throws Exception
+     * @return void
+     */
+    private function authenticate(string $token): void
+    {   
         $url = $this->baseUrl . '?login=' . $this->login . '&password=' . $this->password;
 
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true, 
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $token,
+            ],
         ];
 
         $ch = curl_init();
