@@ -5,21 +5,21 @@ class ApiConnector
     private string $baseUrl;
     private string $login;
     private string $password;
+    private string $token;
 
-    public function __construct(string $baseUrl, string $login, string $password)
+    public function __construct(string $baseUrl, string $login, string $password, string $token = null)
     {
         $this->baseUrl  = $baseUrl;
         $this->login    = $login;
         $this->password = $password;
-        $this->authenticate( $this->generateToken());
     }
 
     /**
      * Généreration du token pour l'authentification API
-     * @throws \Exception
+     * @throws Exception
      * @return string $token
      */
-    private function generateToken(): ?string 
+    public function getAccessToken(): ?string 
     {
         $urlToken = 'https://rest.unidata.msf.org/ebx-dataservices/rest/auth/v1/token:create';
         
@@ -49,59 +49,31 @@ class ApiConnector
             throw new Exception("Erreur API lors de la génération du token. Code HTTP : " . $httpcode . ' - Réponse : ' . $response);
         } else {
             $responseData = json_decode($response, true);
-            $accessToken = $responseData['accessToken'] ?? null;
+            $accessToken  = $responseData['accessToken'] ?? null;
             if (isset($accessToken)) {
                 return $accessToken;
             }
         }
         return null;
     }
-    
+
     /**
-     * Authentification à l'api
+     * Récupération des articles mis à jour depuis 24h
      * @param string $token
      * @throws Exception
-     * @return void
+     * @return array
      */
-    private function authenticate(string $token): void
-    {   
-        $url = $this->baseUrl . '?login=' . $this->login . '&password=' . $this->password;
-
-        $options = [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true, 
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $token,
-            ],
-        ];
-
-        $ch = curl_init();
-        curl_setopt_array($ch, $options);
-        $response = curl_exec($ch);
-
-        if (curl_errno($ch)) {
-            throw new Exception('Erreur CURL : ' . curl_error($ch));
-        }
-
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            throw new Exception("Erreur API lors de l'authentification. Code HTTP : " . $httpCode);
-        }
-
-        $responseData = json_decode($response, true);
-    }
-
-    public function getArticlesUpdatedSince(string $dateTime): array 
+    public function getArticlesUpdatedSince24H(string $token): array 
     {
-        $url = $this->baseUrl . '/articles?updated_since=' . urlencode($dateTime);
+        $url = $this->baseUrl . '?login=' . $this->login . '&password=' . $this->password . '&filter=(date-greater-or-equal(./metaData/mostRecentUpdate,%27'. date('Y-m-d', strtotime('-1 day')) . 'T00:00:00.000%27))';
 
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $token,
+            ],
         ];
 
         $ch = curl_init();

@@ -9,12 +9,16 @@ $password = 'LZcu8dtC';
 
 try {
     $api = new ApiConnector($apiBaseUrl, $login, $password);
+    $token = $api->getAccessToken();
+    if (isset($api)) {
+        echo "✅ Connexion réussie !\n";
+        $articles = $api->getArticlesUpdatedSince24H($token);
+        
+        $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><articles></articles>');
+        var_dump($xml); exit();
+    }
 
-    $dateTimeSince = (new DateTime('-24 hours'))->format(DateTime::ATOM);
 
-    $articles = $api->getArticlesUpdatedSince($dateTimeSince);
-
-    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><articles></articles>');
 
     foreach ($articles as $article) {
         $articleNode = $xml->addChild('id', htmlspecialchars($article['id']));
@@ -79,8 +83,8 @@ try {
 
     // echo "Fichier transféré avec succès vers le serveur distant.\n";
 
-} catch (\Throwable $th) {
-    // echo 'Erreur : ' . $e->getMessage() . "\n";
+} catch (Exception $e) {
+    echo "❌ Erreur lors de la connexion : " . $e->getMessage() . "\n";
     // @Todo : à logguer
 }
 
