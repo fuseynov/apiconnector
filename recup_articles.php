@@ -12,45 +12,144 @@ try {
     $token = $api->getAccessToken();
     if (isset($api)) {
         echo "✅ Connexion réussie !\n";
-        $articles = $api->getArticlesUpdatedSince24H($token);
+        $responseData = $api->getArticlesUpdatedSince24H($token);
+        
+        $articles = $responseData['rows'];
         
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><articles></articles>');
-        var_dump($xml); exit();
-    }
 
+        foreach ($articles as $article) {
+            $articleNode = $xml->addChild('article');
 
+            if (isset($article['code'])) {
+                $articleNode->addChild('code', htmlspecialchars($article['code']));
+            }
 
-    foreach ($articles as $article) {
-        $articleNode = $xml->addChild('id', htmlspecialchars($article['id']));
+            if (isset($article['freeCode'])) {
+                $articleNode->addChild('freeCode', htmlspecialchars($article['freeCode']));
+            }
 
-        // Ajouter les balises qui m'intéressent
-        if (isset($article['id'])) {
-            $articleNode->addChild('id', htmlspecialchars($article['id']));
+            if (isset($article['group']['id'])) {
+                $articleNode->addChild('groupId', htmlspecialchars($article['group']['id']));
+            }
+
+            if (isset($article['family']['id'])) {
+                $articleNode->addChild('familyId', htmlspecialchars($article['family']['id']));
+            }
+
+            if (isset($article['root']['id'])) {
+                $articleNode->addChild('rootId', htmlspecialchars($article['root']['id']));
+            }
+
+            if (isset($article['labels']['french'])) {
+                $articleNode->addChild('labelFr', htmlspecialchars($article['labels']['french']));
+            }
+
+            if (isset($article['labels']['english'])) {
+                $articleNode->addChild('labelEn', htmlspecialchars($article['labels']['english']));
+            }
+
+            if (isset($article['labels']['spanish'])) {
+                $articleNode->addChild('labelSp', htmlspecialchars($article['labels']['spanish']));
+            }
+
+            // MSFIDENTIFIER A RAJOUTER
+
+            if (isset($article['type'])) {
+                $articleNode->addChild('type', htmlspecialchars($article['type']));
+            }
+
+            if (isset($article['standardizationLevel'])) {
+                $articleNode->addChild('standardizationLevel', htmlspecialchars($article['standardizationLevel']));
+            }
+
+            // ID OU LABEL ?
+            if (isset($article['root']['status']['id'])) {
+                $articleNode->addChild('status', htmlspecialchars($article['root']['status']['id']));
+            }
+
+            if (isset($article['scSubscriptions']['msfSupply'])) {
+                $articleNode->addChild('msfSupply', $article['scSubscriptions']['msfSupply'] ? 'true' : 'false');
+            }
+
+            if (isset($article['scSubscriptions']['apu'])) {
+                $articleNode->addChild('apu', $article['scSubscriptions']['apu'] ? 'true' : 'false');
+            }
+
+            if (isset($article['scSubscriptions']['msfLog'])) {
+                $articleNode->addChild('msfLog', $article['scSubscriptions']['msfLog'] ? 'true' : 'false');
+            }
+
+            if (isset($article['ocSubscriptions']['ocb'])) {
+                $articleNode->addChild('ocb', $article['ocSubscriptions']['ocb'] ? 'true' : 'false');
+            }
+
+            if (isset($article['ocSubscriptions']['oca'])) {
+                $articleNode->addChild('oca', $article['ocSubscriptions']['oca'] ? 'true' : 'false');
+            }
+
+            if (isset($article['ocSubscriptions']['ocp'])) {
+                $articleNode->addChild('ocp', $article['ocSubscriptions']['ocp'] ? 'true' : 'false');
+            }
+
+            if (isset($article['ocSubscriptions']['ocg'])) {
+                $articleNode->addChild('ocg', $article['ocSubscriptions']['ocg'] ? 'true' : 'false');
+            }
+
+            if (isset($article['ocSubscriptions']['ocba'])) {
+                $articleNode->addChild('ocba', $article['ocSubscriptions']['ocba'] ? 'true' : 'false');
+            }
+
+            if (isset($article['medical']['medicalDeviceGroup']['medicalDevice'])) {
+                $articleNode->addChild('medicalDeviceClass', htmlspecialchars($article['medical']['medicalDeviceGroup']['medicalDevice']));
+            }
+
+            if (isset($article['medical']['sterile'])) {
+                $articleNode->addChild('sterile', htmlspecialchars($article['medical']['sterile']));
+            }
+
+            // target euHsCode
+            if (isset($article['supply']['euHsCode'])) {
+                $articleNode->addChild('hsCode', htmlspecialchars($article['supply']['euHsCode']));
+            }
+
+            if (isset($article['oldercode'])) {
+                $articleNode->addChild('oldercode', htmlspecialchars($article['oldercode']));
+            }
+
         }
 
-        if (isset($article['title'])) {
-            $articleNode->addChild('id', htmlspecialchars($article['title']));
-        }
+        try {
+            $xmlFilePath = __DIR__ . '/export/articles_' . date('Ymd_His') . '.xml';
+            
+            if (!is_dir(dirname($xmlFilePath))) {
+                mkdir(dirname($xmlFilePath), 0777, true);
+            }
 
-        if (isset($article['updated_at'])) {
-            $articleNode->addChild('id', htmlspecialchars($article['updated_at']));
+            $xml->asXML($xmlFilePath);
+            echo "Fichir XML généré avec succés dans $xmlFilePath\n";
+            
+            $dom = new DOMDocument('1.0');
+            $dom->preserveWhiteSpace = false;
+            $dom->formatOutput = true;
+
+            $dom->loadXML($xml->asXML());
+            $domPath = __DIR__ . '/export/articles_' . date('Ymd_His') . '.xml';
+            $dom->save($domPath);
+
+            echo "✅ XML formaté sauvegardé dans : $domPath\n";
+
+        } catch (Exception $e) {
+            echo "Erreur lors de la génération du fichier XML ". $e->getMessage() ."";
         }
     }
 
-    // Sauvegarder le fichier XML
-    $xmlFilePath = __DIR__ . 'export/articles_' . date('Ymd_His') . '.xml';
-    if (!is_dir(dirname($xmlFilePath))) {
-        mkdir(dirname($xmlFilePath), 0777, true);
-    }
-    $xml->asXML($xmlFilePath);
-
-    echo "Fichir XML généré avec succés dans $xmlFilePath\n";
 
     // Dépôt du fichier distant 
-    $remoteHost = 'your.sftp.server.com';
-    $remoteUser = 'sftp_user';
-    $remotePass = 'sftp_password';
-    $remotePath = '/remote/path/' . basename($xmlFilePath);
+    // $remoteHost = 'your.sftp.server.com';
+    // $remoteUser = 'sftp_user';
+    // $remotePass = 'sftp_password';
+    // $remotePath = '/remote/path/' . basename($xmlFilePath);
 
     //$connection = ssh2_connect($remoteHost, 22);
     
