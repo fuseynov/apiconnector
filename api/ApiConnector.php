@@ -5,7 +5,6 @@ class ApiConnector
     private string $baseUrl;
     private string $login;
     private string $password;
-    private string $token;
 
     public function __construct(string $baseUrl, string $login, string $password, string $token = null)
     {
@@ -20,16 +19,14 @@ class ApiConnector
      * @return string $token
      */
     public function getAccessToken(): ?string 
-    {
-        $urlToken = 'https://rest.unidata.msf.org/ebx-dataservices/rest/auth/v1/token:create';
-        
+    {        
         $data = [
             'login' => $this->login,
             'password' => $this->password
         ];
 
         $options = [
-            CURLOPT_URL => $urlToken,
+            CURLOPT_URL => API_TOKEN,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json'
@@ -49,7 +46,7 @@ class ApiConnector
             throw new Exception("Erreur API lors de la génération du token. Code HTTP : " . $httpcode . ' - Réponse : ' . $response);
         } else {
             $responseData = json_decode($response, true);
-            $accessToken  = $responseData['accessToken'] ?? null;
+            $accessToken  = $responseData['tokenType'] . ' ' . $responseData['accessToken'] ?? null;
             if (isset($accessToken)) {
                 return $accessToken;
             }
@@ -65,7 +62,7 @@ class ApiConnector
      */
     public function getArticlesUpdatedSince24H(string $token): array 
     {
-        $url = $this->baseUrl . '?login=' . $this->login . '&password=' . $this->password . '&filter=(date-greater-or-equal(./metaData/mostRecentUpdate,%27'. date('Y-m-d', strtotime('-1 day')) . 'T00:00:00.000%27))';
+        $url = API_BASE_URL . '?login=' . $this->login . '&password=' . $this->password . '&filter=(date-greater-or-equal(./metaData/mostRecentUpdate,%27'. date('Y-m-d', strtotime('-1 day')) . 'T00:00:00.000%27))';
 
         $options = [
             CURLOPT_URL => $url,

@@ -1,15 +1,12 @@
 <?php
 
 require_once 'api/ApiConnector.php';
-
-// Paramètres de connexion
-$apiBaseUrl = 'https://rest.unidata.msf.org/msf-mdm-unidata/rest/ud-api/v1/articles';
-$login = 'DS_MSFSUP';
-$password = 'LZcu8dtC';
+require_once 'config.php';
 
 try {
-    $api = new ApiConnector($apiBaseUrl, $login, $password);
+    $api = new ApiConnector(API_BASE_URL, CLIENT_LOGIN, CLIENT_PWD);
     $token = $api->getAccessToken();
+
     if (isset($api)) {
         echo "✅ Connexion réussie !\n";
         $responseData = $api->getArticlesUpdatedSince24H($token);
