@@ -23,34 +23,34 @@ try {
             }
 
             if (isset($article['freeCode'])) {
-                $articleNode->addChild('freeCode', htmlspecialchars($article['freeCode']));
+                $articleNode->addChild('freeCode', htmlspecialchars($article['freeCode']) ? 'true' : 'false');
             }
 
-            if (isset($article['group']['id'])) {
-                $articleNode->addChild('groupId', htmlspecialchars($article['group']['id']));
+            if (isset($article['group'])) {
+                $groupNode = $articleNode->addChild('group');
+                $groupNode->addChild('id', htmlspecialchars($article['group']['code']));
             }
 
-            if (isset($article['family']['id'])) {
-                $articleNode->addChild('familyId', htmlspecialchars($article['family']['id']));
+            if (isset($article['family'])) {
+                $familyNode = $articleNode->addChild('family');
+                $familyNode->addChild('id', htmlspecialchars($article['family']['id']));
             }
 
-            if (isset($article['root']['id'])) {
-                $articleNode->addChild('rootId', htmlspecialchars($article['root']['id']));
+            if (isset($article['root'])) {
+                $rootNode = $articleNode->addChild('root');
+                $rootNode->addChild('id', htmlspecialchars($article['root']['id']));
             }
 
-            if (isset($article['labels']['french'])) {
-                $articleNode->addChild('labelFr', htmlspecialchars($article['labels']['french']));
+            if (isset($article['labels'])) {
+                $labelNode = $articleNode->addChild('labels');
+                $labelNode->addChild('english', htmlspecialchars($article['labels']['english']));
+                $labelNode->addChild('french', htmlspecialchars($article['labels']['french']));
+                $labelNode->addChild('spanish', htmlspecialchars($article['labels']['spanish']));
             }
 
-            if (isset($article['labels']['english'])) {
-                $articleNode->addChild('labelEn', htmlspecialchars($article['labels']['english']));
+            if (isset($article['id'])) {
+                $articleNode->addChild('msIdentifier', htmlspecialchars($article['id']));
             }
-
-            if (isset($article['labels']['spanish'])) {
-                $articleNode->addChild('labelSp', htmlspecialchars($article['labels']['spanish']));
-            }
-
-            // MSFIDENTIFIER A RAJOUTER
 
             if (isset($article['type'])) {
                 $articleNode->addChild('type', htmlspecialchars($article['type']));
@@ -60,60 +60,45 @@ try {
                 $articleNode->addChild('standardizationLevel', htmlspecialchars($article['standardizationLevel']));
             }
 
-            // ID OU LABEL ?
-            if (isset($article['root']['status']['id'])) {
-                $articleNode->addChild('status', htmlspecialchars($article['root']['status']['id']));
+            if (isset($article['root']['status'])) {
+                $rootNode = $articleNode->addChild('root');
+                $statusNode = $rootNode->addChild('status');
+                $statusNode->addChild('id', htmlspecialchars($article['root']['status']['id']));
             }
 
-            if (isset($article['scSubscriptions']['msfSupply'])) {
-                $articleNode->addChild('msfSupply', $article['scSubscriptions']['msfSupply'] ? 'true' : 'false');
+            if (isset($article['scSubscriptions'])) {
+                $scSubNode = $articleNode->addChild('scSubscriptions');
+                $scSubNode->addChild('msfSupply', $article['scSubscriptions']['msfSupply'] ? 'true' : 'false');
+                $scSubNode->addChild('apu', $article['scSubscriptions']['apu'] ? 'true' : 'false');
+                $scSubNode->addChild('msfLog', $article['scSubscriptions']['msfLog'] ? 'true' : 'false');
             }
 
-            if (isset($article['scSubscriptions']['apu'])) {
-                $articleNode->addChild('apu', $article['scSubscriptions']['apu'] ? 'true' : 'false');
+            if (isset($article['ocSubscriptions'])) {
+                $ocSubNode = $articleNode->addChild('ocSubscriptions');
+                $ocSubNode->addChild('ocb', $article['ocSubscriptions']['ocb'] ? 'true' : 'false');
+                $ocSubNode->addChild('oca', $article['ocSubscriptions']['oca'] ? 'true' : 'false');
+                $ocSubNode->addChild('ocp', $article['ocSubscriptions']['ocp'] ? 'true' : 'false');
+                $ocSubNode->addChild('ocg', $article['ocSubscriptions']['ocg'] ? 'true' : 'false');
+                $ocSubNode->addChild('ocba', $article['ocSubscriptions']['ocba'] ? 'true' : 'false');
             }
 
-            if (isset($article['scSubscriptions']['msfLog'])) {
-                $articleNode->addChild('msfLog', $article['scSubscriptions']['msfLog'] ? 'true' : 'false');
-            }
-
-            if (isset($article['ocSubscriptions']['ocb'])) {
-                $articleNode->addChild('ocb', $article['ocSubscriptions']['ocb'] ? 'true' : 'false');
-            }
-
-            if (isset($article['ocSubscriptions']['oca'])) {
-                $articleNode->addChild('oca', $article['ocSubscriptions']['oca'] ? 'true' : 'false');
-            }
-
-            if (isset($article['ocSubscriptions']['ocp'])) {
-                $articleNode->addChild('ocp', $article['ocSubscriptions']['ocp'] ? 'true' : 'false');
-            }
-
-            if (isset($article['ocSubscriptions']['ocg'])) {
-                $articleNode->addChild('ocg', $article['ocSubscriptions']['ocg'] ? 'true' : 'false');
-            }
-
-            if (isset($article['ocSubscriptions']['ocba'])) {
-                $articleNode->addChild('ocba', $article['ocSubscriptions']['ocba'] ? 'true' : 'false');
-            }
-
-            if (isset($article['medical']['medicalDeviceGroup']['medicalDevice'])) {
-                $articleNode->addChild('medicalDeviceClass', htmlspecialchars($article['medical']['medicalDeviceGroup']['medicalDevice']));
-            }
-
-            if (isset($article['medical']['sterile'])) {
-                $articleNode->addChild('sterile', htmlspecialchars($article['medical']['sterile']));
+            if (isset($article['medical'])) {
+                $medicalNode   = $articleNode->addChild('medical');
+                $medicalDGNode = $medicalNode->addChild('medicalDeviceGroup');
+                $medicalDGNode->addChild('medicalDeviceClass', htmlspecialchars($article['medical']['medicalDeviceGroup']['medicalDevice']));
+                $medicalNode->addChild('sterile', htmlspecialchars($article['medical']['sterile']));
             }
 
             // target euHsCode
-            if (isset($article['supply']['euHsCode'])) {
-                $articleNode->addChild('hsCode', htmlspecialchars($article['supply']['euHsCode']));
+            if (isset($article['supply'])) {
+                $supplyNode = $articleNode->addChild('supply');
+                
+                $supplyNode->addChild('hsCode', htmlspecialchars($article['supply']['euHsCode']));
             }
 
             if (isset($article['oldercode'])) {
                 $articleNode->addChild('oldercode', htmlspecialchars($article['oldercode']));
             }
-
         }
 
         try {
