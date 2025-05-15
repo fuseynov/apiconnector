@@ -90,26 +90,26 @@ try {
             }
 
             // target euHsCode
-            if (isset($article['supply'])) {
+            if (isset($article['supply']['euHsCode'])) {
                 $supplyNode = $articleNode->addChild('supply');
                 
                 $supplyNode->addChild('hsCode', htmlspecialchars($article['supply']['euHsCode']));
             }
 
             if (isset($article['oldercode'])) {
-                $articleNode->addChild('oldercode', htmlspecialchars($article['oldercode']));
+                $articleNode->addChild('olderCode', htmlspecialchars($article['olderCode']));
             }
         }
 
         try {
-            $xmlFilePath = __DIR__ . '/export/articles_' . date('Ymd_His') . '.xml';
+            $xmlFilePath = __DIR__ . '/export/' . date('Ymd_His') . '.xml';
             
             if (!is_dir(dirname($xmlFilePath))) {
                 mkdir(dirname($xmlFilePath), 0777, true);
             }
 
             $xml->asXML($xmlFilePath);
-            echo "Fichir XML généré avec succés dans $xmlFilePath\n";
+            echo "Fichier XML généré avec succés dans $xmlFilePath\n";
             
             $dom = new DOMDocument('1.0');
             $dom->preserveWhiteSpace = false;
